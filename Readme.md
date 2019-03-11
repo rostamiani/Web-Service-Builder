@@ -113,6 +113,7 @@ This library supports soft deletes and it's enabled by default. You can disable 
 ##Models
 
 Each model that extends MY_Model supports these functions:
+
 |Function Name  |Supports chaining|Output type  |Description
 |---            |---              |---          |----
 |get            |yes              |Object       |Returns one single row
