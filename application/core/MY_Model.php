@@ -29,7 +29,7 @@ class MY_Model extends CI_Model
             exit($error);
         };
 
-        // Update database names if there is database infos available
+        // Update database names if there is database info available
         if (isset($this->token_data->db_postfix))
         {
             // Compile the table name
@@ -88,7 +88,7 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * Inserts a new row. if duplcate, updates the row with 
+     * Inserts a new row. if duplicate, updates the row with 
      *
      * @param array $fields Field values to update
      * @return void
@@ -178,9 +178,9 @@ class MY_Model extends CI_Model
     {
         // generate a subquery that gets total record counts from the table
         $this->where_soft_delete($this->__table_alias);
-        $this->add_keyword();
-        $this->add_join();
-        $this->add_where();
+        $this->add_keyword(FALSE);
+        $this->add_join(FALSE);
+        $this->add_where(FALSE);
 
         $total_query = $this->db
             ->select('COUNT(*) as total_count', FALSE)
@@ -334,6 +334,7 @@ class MY_Model extends CI_Model
         $this->add_join();
         $this->add_where();
         $this->add_limit();
+        $this->add_sort();
         $this->add_group_by();
 
         // If there is a condition, add it
@@ -392,16 +393,16 @@ class MY_Model extends CI_Model
     /**
      * Get one row without any joins and conditions
      */
-    public function get_raw($id = NULL)
+    public function get_raw($value = NULL, $field = 'id')
     {
-        return self::get($id);
+        return self::get($value, $field);
     }
 
     /**
      * Returns multiple rows in a many to many relation
      * @param $id The id of source table to be searched
      * @param $join_table The join table
-     * @param $dest_table Te destination table that has results
+     * @param $dest_table The destination table that has results
      * @param $src_id The id column of the source table in the join table
      * @param $dest_id The id column of the destination table in the join table
      */
@@ -430,7 +431,7 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * Retuns true if the current user owns the item with the current id
+     * Returns true if the current user owns the item with the current id
      * Just if the current table have a 'user_id' field
      */
     public function user_owns($ids)
@@ -464,13 +465,19 @@ class MY_Model extends CI_Model
         return $this;
     }
 
-    public function add_where()
+    public function add_where($clear = TRUE)
     {
         // Add all where conditions
         foreach($this->__where as $where)
         {
             $this->db->where($where['key'] ,$where['value'] ,$where['escape']);
         }
+
+        if($clear)
+        {
+            $this->__where = [];
+        }
+
         return $this;
     }
 
@@ -531,6 +538,7 @@ class MY_Model extends CI_Model
         }
 
         $this->db->order_by($table_alias . '.' .$this->__sort_field);
+
         return $this;
     }
 
@@ -545,13 +553,19 @@ class MY_Model extends CI_Model
         return $this;
     }
 
-    public function add_join()
+    public function add_join($clear = TRUE)
     {
         // Join all
         foreach($this->__join as $join)
         {
             $this->db->join($join['table'] ,$join['cond'] ,$join['type'] ,$join['escape']);
         }
+
+        if($clear)
+        {
+            $this->__join = [];
+        }
+
         return $this;
     }
 
@@ -562,13 +576,19 @@ class MY_Model extends CI_Model
         return $this;
     }
 
-    public function add_limit()
+    public function add_limit($clear = TRUE)
     {
         // Add limit if needed
         if ($this->__limit !== FALSE)
         {
             $this->db->limit($this->__limit, $this->__offset);
         }
+
+        if($clear)
+        {
+            $this->__limit = 100000000;
+        }
+
         return $this;
     }
 
@@ -579,7 +599,7 @@ class MY_Model extends CI_Model
         return $this;
     }
 
-    public function set_select_fields()
+    public function set_select_fields($clear = TRUE)
     {
         // Empty string means *
         if(empty($this->__list_fields))
@@ -590,6 +610,12 @@ class MY_Model extends CI_Model
         {
             $this->db->select($this->__list_fields);
         }
+
+        if($clear)
+        {
+            $this->__list_fields = "";
+        }
+
         return $this;
     }
 
@@ -633,7 +659,7 @@ class MY_Model extends CI_Model
             }
 
             // Add filter to each database field
-            $this->db->group_start(); // grouping added parenteses to the query
+            $this->db->group_start(); // grouping added parentheses to the query
             foreach ($search_fields as $field)
             {
                 $this->db->or_like($field, $this->__keyword);

@@ -525,6 +525,7 @@ class Validation
 
 	/**
 	 * Value should be within an array of values
+	 * Example: in_list[red,blue,green]
 	 *
 	 * @param	string
 	 * @param	string
